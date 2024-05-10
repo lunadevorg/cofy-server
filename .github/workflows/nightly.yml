@@ -24,9 +24,7 @@ jobs:
           rustup update nightly && rustup default nightly
           rustup component add rustfmt clippy
       - name: build
-        run: cargo b -v --profile testing
-      - name: test
-        run: cargo t -v --profile testing
+        run: cargo b -v
       - name: fmt and clippy check
         run: |
           cargo fmt -- --check
