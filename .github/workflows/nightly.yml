@@ -2,9 +2,10 @@ name: CI-nightly
 
 on:
   push:
-    paths: ['**.rs', '**.toml', '**/ci.yml', '**/nightly.yml']
+    paths: ['**.rs', '**.toml', '**/ci.yml', '**/nightly.yml', '**.lock']
   pull_request:
-    paths: ['**.rs', '**.toml', '**/ci.yml', '**/nightly.yml']
+    paths: ['**.rs', '**.toml', '**/ci.yml', '**/nightly.yml', '**.lock']
+  workflow_dispatch:
 
 env:
   CARGO_TERM_COLOR: always
