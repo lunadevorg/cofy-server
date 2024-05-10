@@ -17,10 +17,9 @@ fn default_handler(_: Map) -> Map {
 
 impl Listener {
     pub fn new(ip: &str, port: i64) -> Result<Self> {
-        let new_ip = ip.replace("\"", "");
-        let local_ip = format!("{new_ip}:{port}");
+        let new_ip = format!("{ip}:{port}");
         Ok(Self {
-            tcp: TcpListener::bind(local_ip)?,
+            tcp: TcpListener::bind(new_ip)?,
             handlers: HashMap::new()
         })
     }

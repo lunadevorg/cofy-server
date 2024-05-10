@@ -42,7 +42,7 @@ impl Config {
         let dict = buffer.parse::<Table>()?;
 
         Ok(Self {
-            ip: dict["server"]["ip"].to_string(),
+            ip: dict["server"]["ip"].to_string().replace("\"", ""),
             port: dict["server"]["port"].as_integer().unwrap_or(8000),
             moderation: dict["server"]["moderation"]
                 .to_string()
