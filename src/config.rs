@@ -1,20 +1,20 @@
-use std::{io::Read, convert::From};
+use std::{convert::From, io::Read};
 use toml::Table;
 
 pub enum ServerModeration {
-    ModerationNormal,
-    ModerationNone,
-    ModerationPrivate,
-    ModerationUnknown
+    Normal,
+    None,
+    Private,
+    Unknown,
 }
 
 impl From<String> for ServerModeration {
     fn from(value: String) -> Self {
         match value.as_str() {
-            "normal" => Self::ModerationNormal,
-            "none" => Self::ModerationNone,
-            "private" => Self::ModerationPrivate,
-            _ => Self::ModerationUnknown
+            "normal" => Self::Normal,
+            "none" => Self::None,
+            "private" => Self::Private,
+            _ => Self::Unknown,
         }
     }
 }
@@ -22,7 +22,7 @@ impl From<String> for ServerModeration {
 pub struct Config {
     pub ip: String,
     pub port: i64,
-    pub moderation: ServerModeration
+    pub moderation: ServerModeration,
 }
 
 impl Config {
@@ -36,7 +36,7 @@ impl Config {
         Self {
             ip: dict["server"]["ip"].as_str().unwrap().to_string(),
             port: dict["server"]["port"].as_integer().unwrap_or(8000),
-            moderation: dict["server"]["moderation"].to_string().into()
+            moderation: dict["server"]["moderation"].to_string().into(),
         }
     }
 }
