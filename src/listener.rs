@@ -59,7 +59,10 @@ impl Listener {
             return None;
         }
     
-        let (path_and_query, _version) = (parts[1], parts[0]);
+        let (path_and_query, _version) = (
+            parts[1].split(' ').nth(0)?, 
+            parts[0]
+        );
     
         let path: String;
         let mut query_params = HashMap::new();
@@ -75,7 +78,7 @@ impl Listener {
                 }
             }
         } else {
-            path = path_and_query.split(' ').nth(0).unwrap().to_string();
+            path = path_and_query.to_string();
         }
     
         Some((path, query_params))
@@ -108,11 +111,11 @@ impl Listener {
 
             let http_return = to_string(&http_return_dict)?;
 
+            let return_code = handler_result.code;
+            let status_code = StatusCode::from_u16(handler_result.code)?.as_str().to_owned();
+
             let http_str = format!(
-                "HTTP/1.1 {} {}\r\nContent-Type: application/json\r\n\r\n{}",
-                handler_result.code, 
-                StatusCode::from_u16(handler_result.code)?.as_str(),
-                http_return
+                "HTTP/1.1 {return_code} {status_code}\r\nContent-Type: application/json\r\n\r\n{http_return}"
             );
 
             let _ = stream.write(http_str.as_bytes());

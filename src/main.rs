@@ -5,11 +5,11 @@ use anyhow::Result;
 use listener::HandlerResult;
 use std::{collections::HashMap, path::Path};
 
-fn test_handler(_map: HashMap<String, String>) -> HandlerResult {
+fn test_handler(map: HashMap<String, String>) -> HandlerResult {
     HandlerResult {
         code: 200,
         detail: "success".to_string(),
-        result: HashMap::new()
+        result: HashMap::from([("which foo".to_owned(), map["foo"].to_owned())])
     }
 }
 
