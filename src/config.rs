@@ -1,4 +1,4 @@
-use std::{convert::From, io::Read};
+use std::{convert::From, fs::read_to_string, path::Path};
 use toml::Table;
 
 pub enum ServerModeration {
@@ -26,15 +26,13 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn new(path: &str) -> Self {
-        let mut file = std::fs::File::open(path).unwrap();
-        let mut buffer: String = String::new();
-        let _ = file.read_to_string(&mut buffer);
+    pub fn new(path: &Path) -> Self {
+        let buffer = read_to_string(path).unwrap();
 
         let dict = buffer.parse::<Table>().unwrap();
 
         Self {
-            ip: dict["server"]["ip"].as_str().unwrap().to_string(),
+            ip: dict["server"]["ip"].to_string(),
             port: dict["server"]["port"].as_integer().unwrap_or(8000),
             moderation: dict["server"]["moderation"].to_string().into(),
         }

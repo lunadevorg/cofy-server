@@ -8,8 +8,8 @@ pub struct Listener {
 }
 
 impl Listener {
-    pub fn new(ip: &String, port: &i64) -> Self {
-        let local_ip = format!("{}:{}", ip, port);
+    pub fn new(ip: &str, port: i64) -> Self {
+        let local_ip = format!("{ip}:{port}");
         Self {
             tcp: TcpListener::bind(local_ip).unwrap(),
         }
@@ -27,7 +27,7 @@ impl Listener {
                 .take_while(|line| !line.is_empty())
                 .collect();
 
-            println!("Request: {:#?}", http_request);
+            println!("Request: {http_request:#?}");
         }
     }
 }
