@@ -3,16 +3,33 @@ use std::{
     collections::HashMap, io::{prelude::*, BufReader}, net::TcpListener
 };
 use serde_json::to_string;
-
-pub struct Listener {
-    tcp: TcpListener,
-    handlers: HashMap<String, fn(Map) -> Map>
-}
+use http::StatusCode;
 
 type Map = HashMap<String, String>;
 
-fn default_handler(_: Map) -> Map {
-    Map::new()
+pub struct HandlerResult {
+    pub code: u16,
+    pub detail: String,
+    pub result: Map
+}
+
+impl HandlerResult {
+    pub fn new() -> Self {
+        Self {
+            code: 404,
+            detail: "not found".to_owned(),
+            result: Map::new()
+        }
+    }
+}
+
+fn default_handler(_: Map) -> HandlerResult {
+    HandlerResult::new()
+}
+
+pub struct Listener {
+    tcp: TcpListener,
+    handlers: HashMap<String, fn(Map) -> HandlerResult>
 }
 
 impl Listener {
@@ -24,11 +41,11 @@ impl Listener {
         })
     }
 
-    pub fn attach_handler(&mut self, case: String, handler: fn(Map) -> Map) {
+    pub fn attach_handler(&mut self, case: String, handler: fn(Map) -> HandlerResult) {
         self.handlers.insert(case, handler);
     }
     
-    pub fn choose_handler(&self, path: &String) -> fn(Map) -> Map {
+    pub fn choose_handler(&self, path: &String) -> fn(Map) -> HandlerResult {
         let handler = self.handlers.get(path.as_str());
         match handler {
             None => default_handler,
@@ -85,12 +102,17 @@ impl Listener {
             let (path, options) = res.unwrap();
             let handler = self.choose_handler(&path);
 
-            let http_return_dict = handler(options);
+            let handler_result = handler(options);
+            let mut http_return_dict = handler_result.result;
+            http_return_dict.insert("detail".to_string(), handler_result.detail);
 
             let http_return = to_string(&http_return_dict)?;
 
             let http_str = format!(
-                "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{http_return}"
+                "HTTP/1.1 {} {}\r\nContent-Type: application/json\r\n\r\n{}",
+                handler_result.code, 
+                StatusCode::from_u16(handler_result.code)?.as_str(),
+                http_return
             );
 
             let _ = stream.write(http_str.as_bytes());

@@ -2,12 +2,15 @@ mod config;
 mod listener;
 
 use anyhow::Result;
+use listener::HandlerResult;
 use std::{collections::HashMap, path::Path};
 
-fn test_handler(_map: HashMap<String, String>) -> HashMap<String, String> {
-    HashMap::from([
-        ("hello".to_string(), "world".to_string())
-    ])
+fn test_handler(_map: HashMap<String, String>) -> HandlerResult {
+    HandlerResult {
+        code: 200,
+        detail: "success".to_string(),
+        result: HashMap::new()
+    }
 }
 
 fn main() -> Result<()> {
