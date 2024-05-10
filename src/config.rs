@@ -6,7 +6,6 @@ pub enum ServerModeration {
     Normal,
     None,
     Private,
-    Unknown,
 }
 
 impl From<String> for ServerModeration {
@@ -15,7 +14,17 @@ impl From<String> for ServerModeration {
             "normal" => Self::Normal,
             "none" => Self::None,
             "private" => Self::Private,
-            _ => Self::Unknown,
+            _ => Self::Normal,
+        }
+    }
+}
+
+impl From<ServerModeration> for String {
+    fn from(value: ServerModeration) -> Self {
+        match value {
+            ServerModeration::None => "none".to_string(),
+            ServerModeration::Normal => "normal".to_string(),
+            ServerModeration::Private => "private".to_string()
         }
     }
 }
@@ -35,7 +44,10 @@ impl Config {
         Ok(Self {
             ip: dict["server"]["ip"].to_string(),
             port: dict["server"]["port"].as_integer().unwrap_or(8000),
-            moderation: dict["server"]["moderation"].to_string().into(),
+            moderation: dict["server"]["moderation"]
+                .to_string()
+                .replace("\"", "")
+                .into(),
         })
     }
 }
