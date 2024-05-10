@@ -1,3 +1,4 @@
 /target
 .DS_Store
 .vscode
+cofy_config.toml

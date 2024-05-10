@@ -34,7 +34,7 @@ impl Config {
         let dict = buffer.parse::<Table>().unwrap();
 
         Self {
-            ip: dict["server"]["ip"].to_string(),
+            ip: dict["server"]["ip"].as_str().unwrap().to_string(),
             port: dict["server"]["port"].as_integer().unwrap_or(8000),
             moderation: dict["server"]["moderation"].to_string().into()
         }
