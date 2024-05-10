@@ -1,20 +1,21 @@
-use std::{io::Read, convert::From};
+use anyhow::Result;
+use std::{convert::From, fs::read_to_string, path::Path};
 use toml::Table;
 
 pub enum ServerModeration {
-    ModerationNormal,
-    ModerationNone,
-    ModerationPrivate,
-    ModerationUnknown
+    Normal,
+    None,
+    Private,
+    Unknown,
 }
 
 impl From<String> for ServerModeration {
     fn from(value: String) -> Self {
         match value.as_str() {
-            "normal" => Self::ModerationNormal,
-            "none" => Self::ModerationNone,
-            "private" => Self::ModerationPrivate,
-            _ => Self::ModerationUnknown
+            "normal" => Self::Normal,
+            "none" => Self::None,
+            "private" => Self::Private,
+            _ => Self::Unknown,
         }
     }
 }
@@ -22,21 +23,19 @@ impl From<String> for ServerModeration {
 pub struct Config {
     pub ip: String,
     pub port: i64,
-    pub moderation: ServerModeration
+    pub moderation: ServerModeration,
 }
 
 impl Config {
-    pub fn new(path: &str) -> Self {
-        let mut file = std::fs::File::open(path).unwrap();
-        let mut buffer: String = String::new();
-        let _ = file.read_to_string(&mut buffer);
+    pub fn new(path: &Path) -> Result<Self> {
+        let buffer = read_to_string(path)?;
 
-        let dict = buffer.parse::<Table>().unwrap();
+        let dict = buffer.parse::<Table>()?;
 
-        Self {
-            ip: dict["server"]["ip"].as_str().unwrap().to_string(),
+        Ok(Self {
+            ip: dict["server"]["ip"].to_string(),
             port: dict["server"]["port"].as_integer().unwrap_or(8000),
-            moderation: dict["server"]["moderation"].to_string().into()
-        }
+            moderation: dict["server"]["moderation"].to_string().into(),
+        })
     }
 }

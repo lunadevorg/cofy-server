@@ -1,0 +1,49 @@
+name: CI-nightly
+
+on:
+  push:
+    paths: ['**.rs', '**.toml', '**/ci.yml', '**/nightly.yml', '**.lock']
+  pull_request:
+    paths: ['**.rs', '**.toml', '**/ci.yml', '**/nightly.yml', '**.lock']
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: '-C target-cpu=native -Zmacro-backtrace -Zthreads=3'
+
+jobs:
+  lint:
+    name: lint code using nightly
+    runs-on: macos-14
+    strategy:
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+      - name: default to rust nightly
+        run: |
+          rustup update nightly && rustup default nightly
+          rustup component add rustfmt clippy
+      - name: build
+        run: cargo b -v
+      - name: fmt and clippy check
+        run: |
+          cargo fmt -- --check
+          cargo clippy --all -- \
+          -W clippy::all \
+          -W clippy::pedantic \
+          -W clippy::restriction \
+          -W clippy::nursery \
+          -A clippy::modulo_arithmetic \
+          -A clippy::arithmetic_side_effects \
+          -A clippy::missing_inline_in_public_items \
+          -A clippy::implicit_return \
+          -A clippy::default_numeric_fallback \
+          -A clippy::std_instead_of_core \
+          -A clippy::module_name_repetitions \
+          -A clippy::question_mark_used \
+          -A clippy::integer_division \
+          -A clippy::shadow_reuse \
+          -A clippy::single_call_fn \
+          -A clippy::indexing_slicing \
+          -A clippy::blanket_clippy_restriction_lints \
+          -A clippy::missing_docs_in_private_items || true
