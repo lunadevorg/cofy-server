@@ -1,3 +1,4 @@
+use anyhow::Result;
 use std::{convert::From, fs::read_to_string, path::Path};
 use toml::Table;
 
@@ -26,15 +27,15 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn new(path: &Path) -> Self {
-        let buffer = read_to_string(path).unwrap();
+    pub fn new(path: &Path) -> Result<Self> {
+        let buffer = read_to_string(path)?;
 
-        let dict = buffer.parse::<Table>().unwrap();
+        let dict = buffer.parse::<Table>()?;
 
-        Self {
+        Ok(Self {
             ip: dict["server"]["ip"].to_string(),
             port: dict["server"]["port"].as_integer().unwrap_or(8000),
             moderation: dict["server"]["moderation"].to_string().into(),
-        }
+        })
     }
 }

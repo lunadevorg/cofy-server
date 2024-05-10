@@ -46,4 +46,5 @@ jobs:
           -A clippy::shadow_reuse \
           -A clippy::single_call_fn \
           -A clippy::indexing_slicing \
-          -A clippy::blanket_clippy_restriction_lints || true
+          -A clippy::blanket_clippy_restriction_lints \
+          -A clippy::missing_docs_in_private_items || true
