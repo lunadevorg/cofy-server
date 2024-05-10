@@ -4,11 +4,15 @@ use std::{
 };
 use serde_json::to_string;
 
-type Map = HashMap<String, String>;
-
 pub struct Listener {
     tcp: TcpListener,
     handlers: HashMap<String, fn(Map) -> Map>
+}
+
+type Map = HashMap<String, String>;
+
+fn default_handler(_: Map) -> Map {
+    Map::new()
 }
 
 impl Listener {
@@ -25,11 +29,11 @@ impl Listener {
         self.handlers.insert(case, handler);
     }
     
-    pub fn choose_handler(&self, path: &String) -> Option<&fn(Map) -> Map> {
+    pub fn choose_handler(&self, path: &String) -> fn(Map) -> Map {
         let handler = self.handlers.get(path.as_str());
         match handler {
-            None => None,
-            Some(_) => handler
+            None => default_handler,
+            Some(_) => handler.unwrap().to_owned()
         }
     }
 
@@ -41,7 +45,7 @@ impl Listener {
     
         let (path_and_query, _version) = (parts[1], parts[0]);
     
-        let mut path = String::new();
+        let path: String;
         let mut query_params = HashMap::new();
     
         if let Some(index) = path_and_query.find('?') {
@@ -82,10 +86,7 @@ impl Listener {
             let (path, options) = res.unwrap();
             let handler = self.choose_handler(&path);
 
-            let http_return_dict = match handler {
-                None => Map::new(),
-                _ => handler.unwrap()(options)
-            };
+            let http_return_dict = handler(options);
 
             let http_return = to_string(&http_return_dict)?;
 
@@ -94,8 +95,6 @@ impl Listener {
             );
 
             let _ = stream.write(http_str.as_bytes());
-
-            println!("{path}");
         }
         Ok(())
     }

@@ -12,7 +12,7 @@ fn test_handler(_map: HashMap<String, String>) -> HashMap<String, String> {
 
 fn main() -> Result<()> {
     let config = config::Config::new(Path::new("cofy_config.toml"))?;
-    println!("IP: {}:{}", config.ip, config.port);
+    println!("IP: {}:{}", config.ip.replace("\"", ""), config.port);
     let mut listener = listener::Listener::new(&config.ip, config.port)?;
     listener.attach_handler("/".to_string(), test_handler);
 
