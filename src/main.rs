@@ -1,8 +1,9 @@
 mod config;
+mod http_parse;
 mod listener;
 
 use anyhow::Result;
-use listener::HandlerResult;
+use http_parse::HandlerResult;
 use std::{collections::HashMap, path::Path};
 
 fn test_handler(map: HashMap<String, String>) -> HandlerResult {
@@ -17,6 +18,7 @@ fn main() -> Result<()> {
     let config = config::Config::new(Path::new("cofy_config.toml"))?;
     println!("IP: {}:{}", config.ip, config.port);
     println!("Moderation: {}", String::from(config.moderation));
+
     let mut listener = listener::Listener::new(&config.ip, config.port)?;
     listener.attach_handler("/".to_owned(), test_handler);
 
