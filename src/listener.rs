@@ -1,6 +1,9 @@
 //use std::collections::HashMap;
-use std::error::Error;
+use serde_json::to_string;
+use std::{collections::HashMap, error::Error};
 use tokio::net::TcpListener;
+
+use crate::http_parse::{self, parse_http_request};
 
 //type StringMap = HashMap<String, String>;
 //type Handler = fn(StringMap, String) -> StringMap;
@@ -40,7 +43,24 @@ impl Listener {
                 Ok(_) => (),
                 Err(e) => println!("Error: {e}"),
             }
-            println!("{}", String::from_utf8_lossy(&buffer));
+            let data = String::from_utf8_lossy(&buffer).into_owned();
+            let result = parse_http_request(&data);
+
+            match result {
+                None => continue,
+                Some(_) => (),
+            }
+
+            let (path, args) = result.unwrap();
+            println!("{}", to_string(&args)?);
+            let response = HashMap::from([("path".to_owned(), path)]);
+
+            stream.writable().await?;
+            let response = http_parse::construct_response(200, response);
+            println!("{response}");
+
+            let result = stream.try_write(response.as_bytes()).map_or(0, |x| x);
+            assert_eq!(result, response.len());
         }
     }
 }
