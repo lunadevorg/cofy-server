@@ -1,6 +1,11 @@
 use http::StatusCode;
 use serde_json::to_string;
-use std::{collections::HashMap, future::Future, task::Poll};
+use std::{
+    collections::HashMap,
+    future::Future,
+    pin::Pin,
+    task::{Context, Poll},
+};
 
 pub type StringMap = HashMap<String, String>;
 
@@ -40,11 +45,13 @@ pub struct HandlerResult {
 
 impl HandlerResult {
     pub fn get_response(&self) -> String {
+        let data = StatusCode::from_u16(self.code);
+        let resp = data.unwrap_or(StatusCode::OK);
         format!(
             "HTTP/1.1 {} {}\r\nContent-Type: application/json\r\n\r\n{}",
             self.code,
-            StatusCode::from_u16(self.code).unwrap().as_str(),
-            to_string(&self.result).unwrap()
+            resp,
+            to_string(&self.result).unwrap_or_else(|_| "{}".to_owned())
         )
     }
 }
@@ -52,10 +59,7 @@ impl HandlerResult {
 impl Future for HandlerResult {
     type Output = String;
 
-    fn poll(
-        self: std::pin::Pin<&mut Self>,
-        _cx: &mut std::task::Context<'_>,
-    ) -> std::task::Poll<Self::Output> {
+    fn poll(self: Pin<&mut Self>, _cx: &mut Context<'_>) -> Poll<Self::Output> {
         if self.result.contains_key("detail") {
             Poll::Ready(self.get_response())
         } else {

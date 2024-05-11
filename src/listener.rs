@@ -1,7 +1,6 @@
 use crate::http_parse::{parse_http_request, HandlerResult, StringMap};
 use anyhow::{Error, Result};
 use std::{
-    borrow::ToOwned,
     collections::HashMap,
     future::Future,
     io::{prelude::*, BufReader},
@@ -12,7 +11,7 @@ pub struct AsyncHandler<R>
 where
     R: Future<Output = String>,
 {
-    pub func: fn(StringMap) -> R,
+    pub func: fn(&StringMap) -> R,
 }
 
 pub struct Listener {
@@ -33,17 +32,19 @@ impl Listener {
         self.handlers.insert(case, handler);
     }
 
-    pub async fn choose_handler(&self, path: &str) -> &AsyncHandler<HandlerResult> {
-        self.handlers.get(path).unwrap().to_owned()
+    pub fn choose_handler(&self, path: &str) -> &AsyncHandler<HandlerResult> {
+        &self.handlers[path]
     }
 
     pub async fn background_response(
         mut stream: &TcpStream,
         handler: &AsyncHandler<HandlerResult>,
         args: StringMap,
-    ) {
-        let data = (handler.func)(args).await;
-        let _ = stream.write(data.as_bytes());
+    ) -> usize {
+        let data = (handler.func)(&args).await;
+        let res = stream.write(data.as_bytes());
+
+        res.map_or(0, |n| n)
     }
 
     pub async fn handle_connections(&self) -> Result<()> {
@@ -63,9 +64,9 @@ impl Listener {
             };
 
             let (path, options) = res;
-            let handler = self.choose_handler(&path).await;
+            let handler = self.choose_handler(&path);
 
-            Listener::background_response(&stream, handler, options).await;
+            Self::background_response(&stream, handler, options).await;
         }
         Ok(())
     }

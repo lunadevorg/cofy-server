@@ -6,7 +6,7 @@ use anyhow::Result;
 use http_parse::HandlerResult;
 use std::{collections::HashMap, path::Path};
 
-fn test_handler(map: HashMap<String, String>) -> HandlerResult {
+fn test_handler(map: &HashMap<String, String>) -> HandlerResult {
     if map.contains_key("foo") {
         HandlerResult {
             code: 200,
@@ -23,6 +23,7 @@ fn test_handler(map: HashMap<String, String>) -> HandlerResult {
     }
 }
 
+#[allow(clippy::print_stdout)]
 #[tokio::main]
 async fn main() -> Result<()> {
     let config = config::Config::new(Path::new("cofy_config.toml"))?;
