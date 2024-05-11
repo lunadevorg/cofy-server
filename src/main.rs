@@ -7,10 +7,19 @@ use http_parse::HandlerResult;
 use std::{collections::HashMap, path::Path};
 
 fn test_handler(map: HashMap<String, String>) -> HandlerResult {
-    HandlerResult {
-        code: 200,
-        detail: "success".to_owned(),
-        result: HashMap::from([("which foo".to_owned(), map["foo"].clone())]),
+    if map.contains_key("foo") {
+        HandlerResult {
+            code: 200,
+            result: HashMap::from([
+                ("which foo".to_owned(), map["foo"].clone()),
+                ("detail".to_owned(), "works".to_owned()),
+            ]),
+        }
+    } else {
+        HandlerResult {
+            code: 200,
+            result: HashMap::from([("detail".to_owned(), "no foo".to_owned())]),
+        }
     }
 }
 
@@ -21,7 +30,12 @@ async fn main() -> Result<()> {
     println!("Moderation: {}", String::from(config.moderation));
 
     let mut listener = listener::Listener::new(&config.ip, config.port)?;
-    listener.attach_handler("/".to_owned(), test_handler);
+    listener.attach_handler(
+        "/".to_owned(),
+        listener::AsyncHandler {
+            func: (test_handler),
+        },
+    );
 
     listener.handle_connections().await?;
     Ok(())

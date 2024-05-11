@@ -1,21 +1,23 @@
 use crate::http_parse::{parse_http_request, HandlerResult, StringMap};
 use anyhow::{Error, Result};
-use http::StatusCode;
-use serde_json::to_string;
 use std::{
     borrow::ToOwned,
     collections::HashMap,
+    future::Future,
     io::{prelude::*, BufReader},
-    net::TcpListener,
+    net::{TcpListener, TcpStream},
 };
 
-fn default_handler(_: StringMap) -> HandlerResult {
-    HandlerResult::new()
+pub struct AsyncHandler<R>
+where
+    R: Future<Output = String>,
+{
+    pub func: fn(StringMap) -> R,
 }
 
 pub struct Listener {
     tcp: TcpListener,
-    handlers: HashMap<String, fn(StringMap) -> HandlerResult>,
+    handlers: HashMap<String, AsyncHandler<HandlerResult>>,
 }
 
 impl Listener {
@@ -27,19 +29,26 @@ impl Listener {
         })
     }
 
-    pub fn attach_handler(&mut self, case: String, handler: fn(StringMap) -> HandlerResult) {
+    pub fn attach_handler(&mut self, case: String, handler: AsyncHandler<HandlerResult>) {
         self.handlers.insert(case, handler);
     }
 
-    pub async fn choose_handler(&self, path: &str) -> fn(StringMap) -> HandlerResult {
-        self.handlers
-            .get(path)
-            .map_or(default_handler, ToOwned::to_owned)
+    pub async fn choose_handler(&self, path: &str) -> &AsyncHandler<HandlerResult> {
+        self.handlers.get(path).unwrap().to_owned()
+    }
+
+    pub async fn background_response(
+        mut stream: &TcpStream,
+        handler: &AsyncHandler<HandlerResult>,
+        args: StringMap,
+    ) {
+        let data = (handler.func)(args).await;
+        let _ = stream.write(data.as_bytes());
     }
 
     pub async fn handle_connections(&self) -> Result<()> {
         for stream in self.tcp.incoming() {
-            let mut stream = stream?;
+            let stream = stream?;
 
             let reader = BufReader::new(&stream);
 
@@ -56,20 +65,7 @@ impl Listener {
             let (path, options) = res;
             let handler = self.choose_handler(&path).await;
 
-            let handler_result = handler(options);
-            let mut http_return_dict = handler_result.result;
-            http_return_dict.insert("detail".to_owned(), handler_result.detail);
-
-            let http_return = to_string(&http_return_dict)?;
-
-            let return_code = handler_result.code;
-            let status_code = StatusCode::from_u16(handler_result.code)?.to_string();
-
-            let http_str = format!(
-                "HTTP/1.1 {return_code} {status_code}\r\nContent-Type: application/json\r\n\r\n{http_return}"
-            );
-
-            stream.write_all(http_str.as_bytes())?;
+            Listener::background_response(&stream, handler, options).await;
         }
         Ok(())
     }
