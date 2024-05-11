@@ -12,7 +12,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     println!("{}", &ip);
 
     let mut listener = listener::Listener::new(ip).await;
-    listener.main_loop().await;
+    listener.main_loop().await?;
 
     Ok(())
 }
