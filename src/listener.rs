@@ -13,11 +13,9 @@ fn default_handler(_: StringMap) -> HandlerResult {
     HandlerResult::new()
 }
 
-type Handler = fn(StringMap) -> HandlerResult;
-
 pub struct Listener {
     tcp: TcpListener,
-    handlers: HashMap<String, Handler>,
+    handlers: HashMap<String, fn(StringMap) -> HandlerResult>,
 }
 
 impl Listener {
@@ -29,11 +27,11 @@ impl Listener {
         })
     }
 
-    pub fn attach_handler(&mut self, case: String, handler: Handler) {
+    pub fn attach_handler(&mut self, case: String, handler: fn(StringMap) -> HandlerResult) {
         self.handlers.insert(case, handler);
     }
 
-    pub async fn choose_handler(&self, path: &str) -> Handler {
+    pub async fn choose_handler(&self, path: &str) -> fn(StringMap) -> HandlerResult {
         self.handlers
             .get(path)
             .map_or(default_handler, ToOwned::to_owned)
