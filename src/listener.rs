@@ -1,4 +1,4 @@
-use crate::http_parse::*;
+use crate::http_parse::{parse_http_request, HandlerResult, StringMap};
 use anyhow::{Error, Result};
 use http::StatusCode;
 use serde_json::to_string;
@@ -13,9 +13,11 @@ fn default_handler(_: StringMap) -> HandlerResult {
     HandlerResult::new()
 }
 
+type Handler = fn(StringMap) -> HandlerResult;
+
 pub struct Listener {
     tcp: TcpListener,
-    handlers: HashMap<String, fn(StringMap) -> HandlerResult>,
+    handlers: HashMap<String, Handler>,
 }
 
 impl Listener {
@@ -27,17 +29,17 @@ impl Listener {
         })
     }
 
-    pub fn attach_handler(&mut self, case: String, handler: fn(StringMap) -> HandlerResult) {
+    pub fn attach_handler(&mut self, case: String, handler: Handler) {
         self.handlers.insert(case, handler);
     }
 
-    pub fn choose_handler(&self, path: &str) -> fn(StringMap) -> HandlerResult {
+    pub async fn choose_handler(&self, path: &str) -> Handler {
         self.handlers
             .get(path)
             .map_or(default_handler, ToOwned::to_owned)
     }
 
-    pub fn handle_connections(&self) -> Result<()> {
+    pub async fn handle_connections(&self) -> Result<()> {
         for stream in self.tcp.incoming() {
             let mut stream = stream?;
 
@@ -54,7 +56,7 @@ impl Listener {
             };
 
             let (path, options) = res;
-            let handler = self.choose_handler(&path);
+            let handler = self.choose_handler(&path).await;
 
             let handler_result = handler(options);
             let mut http_return_dict = handler_result.result;
