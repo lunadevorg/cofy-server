@@ -1,73 +1,52 @@
-use crate::http_parse::{parse_http_request, HandlerResult, StringMap};
-use anyhow::{Error, Result};
-use std::{
-    collections::HashMap,
-    future::Future,
-    io::{prelude::*, BufReader},
-    net::{TcpListener, TcpStream},
+use std::collections::HashMap;
+use tokio::{
+    io::{AsyncReadExt, AsyncWriteExt, Interest},
+    net::TcpListener,
 };
 
-pub struct AsyncHandler<R>
-where
-    R: Future<Output = String>,
-{
-    pub func: fn(&StringMap) -> R,
-}
+type StringMap = HashMap<String, String>;
+type Handler = fn(StringMap, String) -> StringMap;
 
 pub struct Listener {
-    tcp: TcpListener,
-    handlers: HashMap<String, AsyncHandler<HandlerResult>>,
+    listener: TcpListener,
+    handlers: HashMap<String, Handler>,
 }
 
 impl Listener {
-    pub fn new(ip: &str, port: i64) -> Result<Self> {
-        let new_ip = format!("{ip}:{port}");
-        Ok(Self {
-            tcp: TcpListener::bind(new_ip)?,
+    pub async fn new(ip: String) -> Self {
+        Self {
+            listener: TcpListener::bind(ip)
+                .await
+                .expect("cannot intialize the listener on that address"),
             handlers: HashMap::new(),
-        })
-    }
-
-    pub fn attach_handler(&mut self, case: String, handler: AsyncHandler<HandlerResult>) {
-        self.handlers.insert(case, handler);
-    }
-
-    pub fn choose_handler(&self, path: &str) -> &AsyncHandler<HandlerResult> {
-        &self.handlers[path]
-    }
-
-    pub async fn background_response(
-        mut stream: &TcpStream,
-        handler: &AsyncHandler<HandlerResult>,
-        args: StringMap,
-    ) -> usize {
-        let data = (handler.func)(&args).await;
-        let res = stream.write(data.as_bytes());
-
-        res.map_or(0, |n| n)
-    }
-
-    pub async fn handle_connections(&self) -> Result<()> {
-        for stream in self.tcp.incoming() {
-            let stream = stream?;
-
-            let reader = BufReader::new(&stream);
-
-            let http_request: Vec<_> = reader
-                .lines()
-                .map(|result| result.unwrap_or_else(|_| String::new()))
-                .take_while(|line| !line.is_empty())
-                .collect();
-
-            let Some(res) = parse_http_request(&http_request[0]) else {
-                return Err(Error::msg("couldn't parse the HTTP"));
-            };
-
-            let (path, options) = res;
-            let handler = self.choose_handler(&path);
-
-            Self::background_response(&stream, handler, options).await;
         }
-        Ok(())
+    }
+
+    pub fn attach_handler(&mut self, path: String, handler: Handler) {
+        self.handlers.insert(path, handler);
+    }
+
+    pub async fn main_loop(&mut self) {
+        loop {
+            let result = self.listener.accept().await;
+            match result {
+                Err(_) => continue,
+                Ok(_) => (),
+            };
+            let (mut stream, addr) = result.unwrap();
+            let result = stream.ready(Interest::READABLE | Interest::WRITABLE).await;
+
+            match result {
+                Err(_) => continue,
+                Ok(_) => (),
+            }
+            let ready = result.unwrap();
+
+            if ready.is_readable() {
+                let mut buffer = vec![0; 1024];
+                let _ = stream.read(&mut buffer);
+                println!("data: {:#?}", buffer);
+            }
+        }
     }
 }

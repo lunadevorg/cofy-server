@@ -7,7 +7,7 @@ use std::{
     task::{Context, Poll},
 };
 
-pub type StringMap = HashMap<String, String>;
+type StringMap = HashMap<String, String>;
 
 pub fn parse_http_request(request: &str) -> Option<(String, StringMap)> {
     let parts: Vec<&str> = request.splitn(2, ' ').collect();
@@ -38,6 +38,7 @@ pub fn parse_http_request(request: &str) -> Option<(String, StringMap)> {
     Some((path, query_params))
 }
 
+/*
 pub struct HandlerResult {
     pub code: u16,
     pub result: StringMap,
@@ -67,3 +68,4 @@ impl Future for HandlerResult {
         }
     }
 }
+*/
