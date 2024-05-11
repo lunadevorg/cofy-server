@@ -60,14 +60,14 @@ impl Listener {
             return None;
         }
 
-        let (path_and_query, _version) = (parts[1].split(' ').nth(0)?, parts[0]);
+        let (path_and_query, _version) = (parts[1].split_once(' ')?.0, parts[0]);
 
         let path: String;
         let mut query_params = HashMap::new();
 
         if let Some(index) = path_and_query.find('?') {
-            path = path_and_query[..index].to_string();
-            let query = &path_and_query[index + 1..];
+            path = path_and_query.get(..index)?.to_owned();
+            let query = &path_and_query.get(index + 1..)?;
 
             for param in query.split('&') {
                 let key_value: Vec<&str> = param.split('=').collect();
