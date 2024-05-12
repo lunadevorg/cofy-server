@@ -19,6 +19,8 @@ impl Listener {
         })
     }
 
+    // remove false-positive lint
+    #[allow(clippy::unused_async)]
     async fn handle_request(_path: String, args: StringMap) -> String {
         http_parse::construct_response(200, &args)
     }
@@ -38,8 +40,7 @@ impl Listener {
             let data = String::from_utf8_lossy(&buffer).into_owned();
 
             let (path, args) = parse_http_request(&data).unwrap_or_default();
-            let result = tokio::spawn(Self::handle_request(path, args));
-            let result = result.await.unwrap();
+            let result = tokio::spawn(Self::handle_request(path, args)).await?;
             let size = stream.try_write(result.as_bytes()).unwrap_or_default();
             assert_eq!(
                 size,
