@@ -33,7 +33,8 @@ impl Listener {
             info!("{addr}");
 
             stream.readable().await?;
-            let mut buffer = vec![0; 128];
+            //320 elements to allow reading all data
+            let mut buffer = vec![0; 320];
             match stream.try_read(&mut buffer) {
                 Ok(_) => (),
                 Err(err) => error!("{err}"),
