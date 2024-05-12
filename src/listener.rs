@@ -48,7 +48,7 @@ impl Listener {
             let response = http_parse::construct_response(200, &response);
             info!("{response}");
 
-            let result = stream.try_write(response.as_bytes()).map_or(0, |x| x);
+            let result = stream.try_write(response.as_bytes()).unwrap_or_default();
             assert_eq!(
                 result,
                 response.len(),
