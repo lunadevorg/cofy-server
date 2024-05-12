@@ -33,7 +33,7 @@ pub fn parse_http_request(request: &str) -> Option<(String, StringMap)> {
     Some((path, query_params))
 }
 
-pub fn construct_response(code: u16, result: StringMap) -> String {
+pub fn construct_response(code: u16, result: &StringMap) -> String {
     let data = StatusCode::from_u16(code);
     let resp = data.unwrap_or(StatusCode::NOT_FOUND);
     format!(
