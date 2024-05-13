@@ -43,7 +43,7 @@ pub fn new_response(code: u16, result: &StringMap) -> String {
     )
 }
 
-pub fn new_str_response(code: u16, result: String) -> String {
+pub fn new_str_response(code: u16, result: &str) -> String {
     let data = StatusCode::from_u16(code).unwrap_or(StatusCode::NOT_FOUND);
     format!(
         "HTTP/1.1 {}\r\nContent-Type: application/json\r\n\r\n{}",

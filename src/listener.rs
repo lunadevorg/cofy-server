@@ -25,7 +25,10 @@ impl Listener {
     #[allow(clippy::unused_async)] //Magic tool we'll put to good use later
     async fn handler(state: ServerModeration, stream: TcpStream, args: StringMap) -> usize {
         let response = if args.contains_key("moder") {
-            http_parse::new_str_response(200, format!("{{\"moder\" : {}}}", String::from(state)))
+            http_parse::new_str_response(
+                200,
+                format!("{{\"moder\" : {}}}", String::from(state)).as_str(),
+            )
         } else {
             http_parse::new_response(200, &args)
         };
