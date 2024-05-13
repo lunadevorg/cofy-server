@@ -31,6 +31,7 @@ impl From<ServerModeration> for String {
 pub struct Config {
     pub ip: String,
     pub port: i64,
+    #[allow(dead_code)] //Moderation will be used when handlers are implemented
     pub moderation: ServerModeration,
     pub db_path: String,
     pub db_user: String,

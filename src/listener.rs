@@ -18,12 +18,13 @@ impl Listener {
         })
     }
 
+    #[allow(clippy::unused_async)] //Magic tool we'll put to good use later
     async fn handler(stream: TcpStream, args: StringMap) -> usize {
         let response = http_parse::construct_response(200, &args);
         stream.try_write(response.as_bytes()).unwrap_or_default()
     }
 
-    pub async fn main_loop(&mut self) -> Result<()> {
+    pub async fn main_loop(&self) -> Result<()> {
         loop {
             let (stream, addr) = self.listener.accept().await?;
             info!("{addr}");
@@ -39,7 +40,10 @@ impl Listener {
 
             let (_path, args) = parse_http_request(&data).unwrap_or_default();
             let result = tokio::spawn(Self::handler(stream, args));
-            assert!(result.await.unwrap_or_default() != 0);
+            assert!(
+                result.await.unwrap_or_default() != 0,
+                "Couldn't write message into the stream"
+            );
         }
     }
 }

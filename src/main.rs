@@ -15,13 +15,13 @@ async fn main() -> Result<()> {
     let ip = format!("{}:{}", config.ip, config.port);
     info!("{ip}");
 
-    let mut listener = listener::Listener::new(ip)
+    let listener = listener::Listener::new(ip)
         .await
         .with_context(|| "Failed to create listener")?;
 
     let database = Database::new(config).await?;
     let result = database.test().await?;
-    println!("{result}");
+    info!("{result}");
 
     listener
         .main_loop()
