@@ -3,9 +3,10 @@ use anyhow::Result;
 use sqlx::{pool::Pool, postgres::PgPoolOptions, Postgres};
 
 pub struct Database {
+    #[allow(dead_code)]
     pub inside: Pool<Postgres>,
     #[allow(dead_code)]
-    db_path: String,
+    pub db_path: String,
     pub moderation: ServerModeration,
 }
 

@@ -24,15 +24,11 @@ impl Listener {
 
     #[allow(clippy::unused_async)] //Magic tool we'll put to good use later
     async fn handler(state: ServerModeration, stream: TcpStream, args: StringMap) -> usize {
-        let response: String;
-        if args.contains_key("moder") {
-            response = http_parse::new_str_response(
-                200,
-                format!("{{\"moder\" : {}}}", String::from(state)),
-            );
+        let response = if args.contains_key("moder") {
+            http_parse::new_str_response(200, format!("{{\"moder\" : {}}}", String::from(state)))
         } else {
-            response = http_parse::new_response(200, &args);
-        }
+            http_parse::new_response(200, &args)
+        };
         stream.try_write(response.as_bytes()).unwrap_or_default()
     }
 
