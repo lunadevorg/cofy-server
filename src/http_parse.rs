@@ -42,35 +42,3 @@ pub fn construct_response(code: u16, result: &StringMap) -> String {
         to_string(&result).unwrap_or_else(|_| "{}".to_owned())
     )
 }
-
-/*
-pub struct HandlerResult {
-    pub code: u16,
-    pub result: StringMap,
-}
-
-impl HandlerResult {
-    pub fn get_response(&self) -> String {
-        let data = StatusCode::from_u16(self.code);
-        let resp = data.unwrap_or(StatusCode::OK);
-        format!(
-            "HTTP/1.1 {} {}\r\nContent-Type: application/json\r\n\r\n{}",
-            self.code,
-            resp,
-            to_string(&self.result).unwrap_or_else(|_| "{}".to_owned())
-        )
-    }
-}
-
-impl Future for HandlerResult {
-    type Output = String;
-
-    fn poll(self: Pin<&mut Self>, _cx: &mut Context<'_>) -> Poll<Self::Output> {
-        if self.result.contains_key("detail") {
-            Poll::Ready(self.get_response())
-        } else {
-            Poll::Pending
-        }
-    }
-}
-*/
