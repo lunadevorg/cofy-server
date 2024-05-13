@@ -32,6 +32,9 @@ pub struct Config {
     pub ip: String,
     pub port: i64,
     pub moderation: ServerModeration,
+    pub db_path: String,
+    pub db_user: String,
+    pub db_password: String,
 }
 
 impl Config {
@@ -47,6 +50,9 @@ impl Config {
                 .to_string()
                 .replace('"', "")
                 .into(),
+            db_path: dict["db"]["path"].to_string(),
+            db_user: dict["db"]["user"].to_string().replace('"', ""),
+            db_password: dict["db"]["password"].to_string().replace('"', ""),
         })
     }
 }

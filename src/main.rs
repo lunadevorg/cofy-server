@@ -19,7 +19,7 @@ async fn main() -> Result<()> {
         .await
         .with_context(|| "Failed to create listener")?;
 
-    let database = Database::new().await?;
+    let database = Database::new(config).await?;
     let result = database.test().await?;
     println!("{result}");
 
