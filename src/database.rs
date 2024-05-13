@@ -1,10 +1,12 @@
-use crate::config::Config;
+use crate::config::{Config, ServerModeration};
 use anyhow::Result;
 use sqlx::{pool::Pool, postgres::PgPoolOptions, Postgres};
 
 pub struct Database {
-    inside: Pool<Postgres>,
+    pub inside: Pool<Postgres>,
+    #[allow(dead_code)]
     db_path: String,
+    pub moderation: ServerModeration,
 }
 
 impl Database {
@@ -18,13 +20,14 @@ impl Database {
         Ok(Self {
             inside: db,
             db_path: config.db_path,
+            moderation: config.moderation,
         })
     }
 
-    pub async fn test(&self) -> Result<i64> {
-        let row: (i64,) = sqlx::query_as(format!("SELECT * FROM {};", self.db_path).as_str())
-            .fetch_one(&self.inside)
-            .await?;
-        Ok(row.0)
-    }
+    //pub async fn test(&self) -> Result<i64> {
+    //    let row: (i64,) = sqlx::query_as(format!("SELECT * FROM {};", self.db_path).as_str())
+    //        .fetch_one(&self.inside)
+    //        .await?;
+    //    Ok(row.0)
+    //}
 }

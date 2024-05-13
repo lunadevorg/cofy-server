@@ -33,12 +33,20 @@ pub fn parse_http_request(request: &str) -> Option<(String, StringMap)> {
     Some((path, query_params))
 }
 
-pub fn construct_response(code: u16, result: &StringMap) -> String {
+pub fn new_response(code: u16, result: &StringMap) -> String {
     let data = StatusCode::from_u16(code);
     let resp = data.unwrap_or(StatusCode::NOT_FOUND);
     format!(
         "HTTP/1.1 {}\r\nContent-Type: application/json\r\n\r\n{}",
         resp,
         to_string(&result).unwrap_or_else(|_| "{}".to_owned())
+    )
+}
+
+pub fn new_str_response(code: u16, result: String) -> String {
+    let data = StatusCode::from_u16(code).unwrap_or(StatusCode::NOT_FOUND);
+    format!(
+        "HTTP/1.1 {}\r\nContent-Type: application/json\r\n\r\n{}",
+        data, result
     )
 }

@@ -2,6 +2,7 @@ use anyhow::Result;
 use std::{convert::From, fs::read_to_string, path::Path};
 use toml::Table;
 
+#[derive(Clone)]
 pub enum ServerModeration {
     Normal,
     None,
@@ -21,9 +22,9 @@ impl From<String> for ServerModeration {
 impl From<ServerModeration> for String {
     fn from(value: ServerModeration) -> Self {
         match value {
-            ServerModeration::None => "none".to_owned(),
-            ServerModeration::Normal => "normal".to_owned(),
-            ServerModeration::Private => "private".to_owned(),
+            ServerModeration::None => "\"none\"".to_owned(),
+            ServerModeration::Normal => "\"normal\"".to_owned(),
+            ServerModeration::Private => "\"private\"".to_owned(),
         }
     }
 }

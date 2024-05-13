@@ -1,26 +1,38 @@
 use anyhow::Result;
-use log::{error, info};
+use log::info;
 use std::collections::HashMap;
 use tokio::net::{TcpListener, TcpStream};
 
+use crate::config::ServerModeration;
+use crate::database::Database;
 use crate::http_parse::{self, parse_http_request};
 
 pub type StringMap = HashMap<String, String>;
 
 pub struct Listener {
     listener: TcpListener,
+    database: Database,
 }
 
 impl Listener {
-    pub async fn new(ip: String) -> Result<Self> {
+    pub async fn new(ip: String, db: Database) -> Result<Self> {
         Ok(Self {
             listener: TcpListener::bind(ip).await?,
+            database: db,
         })
     }
 
     #[allow(clippy::unused_async)] //Magic tool we'll put to good use later
-    async fn handler(stream: TcpStream, args: StringMap) -> usize {
-        let response = http_parse::construct_response(200, &args);
+    async fn handler(state: ServerModeration, stream: TcpStream, args: StringMap) -> usize {
+        let response: String;
+        if args.contains_key("moder") {
+            response = http_parse::new_str_response(
+                200,
+                format!("{{\"moder\" : {}}}", String::from(state)),
+            );
+        } else {
+            response = http_parse::new_response(200, &args);
+        }
         stream.try_write(response.as_bytes()).unwrap_or_default()
     }
 
@@ -30,16 +42,22 @@ impl Listener {
             info!("{addr}");
 
             stream.readable().await?;
-            //320 elements to allow reading all data
             let mut buffer = vec![0; 320];
-            match stream.try_read(&mut buffer) {
-                Ok(_) => (),
-                Err(err) => error!("{err}"),
-            }
-            let data = String::from_utf8_lossy(&buffer).into_owned();
+            let mut to_parse = String::new();
 
-            let (_path, args) = parse_http_request(&data).unwrap_or_default();
-            let result = tokio::spawn(Self::handler(stream, args));
+            let mut first = true;
+            while stream.try_read(&mut buffer).unwrap_or_default() == 320 || first {
+                let data = String::from_utf8_lossy(&buffer).into_owned();
+                to_parse += &data;
+                first = false;
+            }
+
+            let (_path, args) = parse_http_request(&to_parse).unwrap_or_default();
+            let result = tokio::spawn(Self::handler(
+                self.database.moderation.clone(),
+                stream,
+                args,
+            ));
             assert!(
                 result.await.unwrap_or_default() != 0,
                 "Couldn't write message into the stream"
