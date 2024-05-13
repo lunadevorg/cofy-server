@@ -1,8 +1,10 @@
 mod config;
+mod database;
 mod http_parse;
 mod listener;
 
 use anyhow::{Context, Result};
+use database::Database;
 use log::info;
 use std::path::Path;
 
@@ -16,6 +18,10 @@ async fn main() -> Result<()> {
     let mut listener = listener::Listener::new(ip)
         .await
         .with_context(|| "Failed to create listener")?;
+
+    let database = Database::new().await?;
+    let result = database.test().await?;
+    println!("{result}");
 
     listener
         .main_loop()
