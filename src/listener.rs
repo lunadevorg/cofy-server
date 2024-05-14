@@ -23,11 +23,21 @@ impl Listener {
     }
 
     #[allow(clippy::unused_async)] //Magic tool we'll put to good use later
-    async fn handler(state: ServerModeration, stream: TcpStream, args: StringMap) -> usize {
+    async fn handler(
+        db: Database,
+        state: ServerModeration,
+        stream: TcpStream,
+        args: StringMap,
+    ) -> usize {
         let response = if args.contains_key("moder") {
             http_parse::new_str_response(
                 200,
                 format!("{{\"moder\" : {}}}", String::from(state)).as_str(),
+            )
+        } else if args.contains_key("test") {
+            http_parse::new_str_response(
+                200,
+                format!("{{\"test\" : {}}}", db.test().await.unwrap_or_default()).as_str(),
             )
         } else {
             http_parse::new_response(200, &args)
@@ -45,14 +55,20 @@ impl Listener {
             let mut to_parse = String::new();
 
             let mut first = true;
-            while stream.try_read(&mut buffer).unwrap_or_default() == 320 || first {
+            loop {
+                let result = stream.try_read(&mut buffer).unwrap_or_default();
                 let data = String::from_utf8_lossy(&buffer).into_owned();
                 to_parse += &data;
-                first = false;
+                if result != 320 && !first {
+                    break;
+                } else if first {
+                    first = false;
+                }
             }
 
             let (_path, args) = parse_http_request(&to_parse).unwrap_or_default();
             let result = tokio::spawn(Self::handler(
+                self.database.clone(),
                 self.database.moderation.clone(),
                 stream,
                 args,

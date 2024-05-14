@@ -2,6 +2,7 @@ use crate::config::{Config, ServerModeration};
 use anyhow::Result;
 use sqlx::{pool::Pool, postgres::PgPoolOptions, Postgres};
 
+#[derive(Clone)]
 pub struct Database {
     #[allow(dead_code)]
     pub inside: Pool<Postgres>,
@@ -25,10 +26,10 @@ impl Database {
         })
     }
 
-    //pub async fn test(&self) -> Result<i64> {
-    //    let row: (i64,) = sqlx::query_as(format!("SELECT * FROM {};", self.db_path).as_str())
-    //        .fetch_one(&self.inside)
-    //        .await?;
-    //    Ok(row.0)
-    //}
+    pub async fn test(&self) -> Result<i64> {
+        let row: (i64,) = sqlx::query_as(format!("SELECT * FROM {};", self.db_path).as_str())
+            .fetch_one(&self.inside)
+            .await?;
+        Ok(row.0)
+    }
 }
