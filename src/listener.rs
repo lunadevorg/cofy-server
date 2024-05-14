@@ -22,7 +22,6 @@ impl Listener {
         })
     }
 
-    #[allow(clippy::unused_async)] //Magic tool we'll put to good use later
     async fn handler(
         db: Database,
         state: ServerModeration,

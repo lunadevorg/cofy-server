@@ -4,7 +4,6 @@ use sqlx::{pool::Pool, postgres::PgPoolOptions, Postgres};
 
 #[derive(Clone)]
 pub struct Database {
-    #[allow(dead_code)]
     pub inside: Pool<Postgres>,
     #[allow(dead_code)]
     pub db_path: String,
