@@ -59,7 +59,9 @@ impl Listener {
                     break;
                 } else if first {
                     first = false;
-                }
+                } else {
+                    continue;
+                };
             }
 
             let (_path, args) = parse_http_request(&to_parse).unwrap_or_default();
