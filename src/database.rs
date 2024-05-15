@@ -11,6 +11,7 @@
 use crate::config::{Config, ServerModeration};
 use anyhow::Result;
 use sqlx::{pool::Pool, postgres::PgPoolOptions, Postgres};
+use std::fs::read_to_string;
 
 #[derive(Clone)]
 pub struct Database {
@@ -34,7 +35,7 @@ impl Database {
     }
 
     pub async fn run_script(&self, path: &String) -> Result<usize> {
-        let query = std::fs::read_to_string(path)?;
+        let query = read_to_string(path)?;
         sqlx::query(&query)
             .bind("0.0.0.0")
             .bind("self")
