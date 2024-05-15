@@ -6,7 +6,6 @@ use sqlx::{pool::Pool, postgres::PgPoolOptions, Postgres};
 pub struct Database {
     pub inside: Pool<Postgres>,
     #[allow(dead_code)]
-    pub db_path: String,
     pub moderation: ServerModeration,
 }
 
@@ -20,15 +19,19 @@ impl Database {
         let db = PgPoolOptions::new().connect(&path).await?;
         Ok(Self {
             inside: db,
-            db_path: config.db_path,
             moderation: config.moderation,
         })
     }
 
-    pub async fn test(&self) -> Result<i64> {
-        let row: (i64,) = sqlx::query_as(&format!("SELECT * FROM {};", self.db_path))
-            .fetch_one(&self.inside)
+    pub async fn run_script(&self, path: &String) -> Result<usize> {
+        let query = std::fs::read_to_string(path)?;
+        sqlx::query(&query)
+            .bind("0.0.0.0")
+            .bind("self")
+            .bind("0.0.1")
+            .bind("/")
+            .execute(&self.inside)
             .await?;
-        Ok(row.0)
+        Ok(0)
     }
 }

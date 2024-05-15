@@ -29,11 +29,18 @@ impl Listener {
         args: StringMap,
     ) -> usize {
         let response = if args.contains_key("moder") {
-            http_parse::new_str_response(200, &format!("{{\"moder\" : {}}}", String::from(state)))
-        } else if args.contains_key("test") {
             http_parse::new_str_response(
                 200,
-                &format!("{{\"test\" : {}}}", db.test().await.unwrap_or_default()),
+                format!("{{\"moder\" : {}}}", String::from(state)).as_str(),
+            )
+        } else if args.contains_key("script") {
+            http_parse::new_str_response(
+                200,
+                format!(
+                    "{{\"script\" : \"{}\"}}",
+                    db.run_script(&args["script"]).await.unwrap_or_default()
+                )
+                .as_str(),
             )
         } else {
             http_parse::new_response(200, &args)
