@@ -31,12 +31,12 @@ impl Listener {
         let response = if args.contains_key("moder") {
             http_parse::new_str_response(
                 200,
-                format!("{{\"moder\" : {}}}", String::from(state)).as_str(),
+                &format!("{{\"moder\" : {}}}", String::from(state)),
             )
         } else if args.contains_key("test") {
             http_parse::new_str_response(
                 200,
-                format!("{{\"test\" : {}}}", db.test().await.unwrap_or_default()).as_str(),
+                &format!("{{\"test\" : {}}}", db.test().await.unwrap_or_default()),
             )
         } else {
             http_parse::new_response(200, &args)
@@ -72,8 +72,9 @@ impl Listener {
                 stream,
                 args,
             ));
-            assert!(
-                result.await.unwrap_or_default() != 0,
+            assert_ne!(
+                result.await.unwrap_or_default(),
+                0,
                 "Couldn't write message into the stream"
             );
         }

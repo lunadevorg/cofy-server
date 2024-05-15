@@ -26,7 +26,7 @@ impl Database {
     }
 
     pub async fn test(&self) -> Result<i64> {
-        let row: (i64,) = sqlx::query_as(format!("SELECT * FROM {};", self.db_path).as_str())
+        let row: (i64,) = sqlx::query_as(&format!("SELECT * FROM {};", self.db_path))
             .fetch_one(&self.inside)
             .await?;
         Ok(row.0)
