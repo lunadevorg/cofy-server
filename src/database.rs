@@ -1,3 +1,13 @@
+/*
+*     _____     ___
+*    / ___/__  / _/_ __
+*   / /__/ _ \/ _/ // /
+*   \___/\___/_/ \_, /
+*               /___/
+*
+*   database.rs: database manipulation using sqlx
+*/
+
 use crate::config::{Config, ServerModeration};
 use anyhow::Result;
 use sqlx::{pool::Pool, postgres::PgPoolOptions, Postgres};

@@ -1,3 +1,19 @@
+/*
+*     _____     ___
+*    / ___/__  / _/_ __
+*   / /__/ _ \/ _/ // /
+*   \___/\___/_/ \_, /
+*               /___/
+*
+*   config.rs: parse the cofy_config.toml file to get server configuration
+*   parameters (in cofy_config.toml):
+*       server.ip: the ip address of the server (string)
+*       server.port: server's port (u16)
+*       server.moderation: default moderation level of the server
+*       db.user: the user for your postgres database
+*       db.password: user's password
+*/
+
 use anyhow::Result;
 use std::{convert::From, fs::read_to_string, path::Path};
 use toml::Table;

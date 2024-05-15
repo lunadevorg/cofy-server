@@ -1,3 +1,13 @@
+/*
+*     _____     ___
+*    / ___/__  / _/_ __
+*   / /__/ _ \/ _/ // /
+*   \___/\___/_/ \_, /
+*               /___/
+*
+*   main.rs: main file in the hierarchy
+*/
+
 mod config;
 mod database;
 mod http_parse;

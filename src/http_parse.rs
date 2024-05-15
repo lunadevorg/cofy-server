@@ -1,3 +1,13 @@
+/*
+*     _____     ___
+*    / ___/__  / _/_ __
+*   / /__/ _ \/ _/ // /
+*   \___/\___/_/ \_, /
+*               /___/
+*
+*   http_parse.rs: http request/response manipulation
+*/
+
 use http::StatusCode;
 use serde_json::to_string;
 use std::collections::HashMap;
