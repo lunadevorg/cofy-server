@@ -35,14 +35,24 @@ impl Database {
     }
 
     pub async fn run_script(&self, path: &String) -> Result<usize> {
-        let query = read_to_string(path)?;
-        sqlx::query(&query)
-            .bind("0.0.0.0")
-            .bind("self")
-            .bind("0.0.1")
-            .bind("/")
-            .execute(&self.inside)
-            .await?;
+        let query = read_to_string(path)?
+            .replace("$1", "'0.0.0.0'")
+            .replace("$2", "'self'")
+            .replace("$3", "'0.0.1'")
+            .replace("$4", "'/'");
+        for line in query.lines() {
+            let mut chars = line.chars();
+            let char = chars.nth(0).unwrap_or_default();
+            if char == '/' || char == '*' || char == '\n' {
+                continue;
+            } else {
+                let result = sqlx::query(line).execute(&self.inside).await;
+                if result.is_err() {
+                    println!("{}", result.err().unwrap())
+                }
+            }
+        }
+
         Ok(0)
     }
 }
