@@ -39,7 +39,7 @@ impl Listener {
         args: StringMap,
     ) -> usize {
         let response = if args.contains_key("moder") {
-            http_parse::new_str_response(200, &format!("{{\"moder\" : {}}}", String::from(state)))
+            http_parse::new_str_response(200, &format!("{{\"moder\" : {state}}}"))
         } else if args.contains_key("script") {
             http_parse::new_str_response(
                 200,

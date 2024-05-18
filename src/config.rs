@@ -15,7 +15,12 @@
 */
 
 use anyhow::Result;
-use std::{convert::From, fs::read_to_string, path::Path};
+use std::{
+    convert::From,
+    fmt::{self, Display},
+    fs::read_to_string,
+    path::Path,
+};
 use toml::Table;
 
 #[derive(Clone)]
@@ -35,12 +40,12 @@ impl From<String> for ServerModeration {
     }
 }
 
-impl From<ServerModeration> for String {
-    fn from(value: ServerModeration) -> Self {
-        match value {
-            ServerModeration::None => "\"none\"".to_owned(),
-            ServerModeration::Normal => "\"normal\"".to_owned(),
-            ServerModeration::Private => "\"private\"".to_owned(),
+impl Display for ServerModeration {
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match *self {
+            Self::None => write!(fmt, "\"none\""),
+            Self::Normal => write!(fmt, "\"normal\""),
+            Self::Private => write!(fmt, "\"private\""),
         }
     }
 }
