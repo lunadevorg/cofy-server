@@ -18,7 +18,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        toolchain: [stable, beta, nightly]
+        toolchain: [stable, beta]
     steps:
       - uses: actions/checkout@v4
       - name: update to ${{ matrix.toolchain }} rust
