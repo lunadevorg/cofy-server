@@ -2,6 +2,8 @@
 name = "cofy-server-rs"
 version = "0.1.0"
 edition = "2021"
+repository = "https://github.com/lunadevorg/cofy-server-rs"
+rust-version = "1.70.0"
 
 [dependencies]
 anyhow = "1.0"

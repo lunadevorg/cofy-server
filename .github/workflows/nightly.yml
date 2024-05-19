@@ -33,6 +33,7 @@ jobs:
           -W clippy::pedantic \
           -W clippy::restriction \
           -W clippy::nursery \
+          -W clippy::cargo \
           -A clippy::modulo_arithmetic \
           -A clippy::arithmetic_side_effects \
           -A clippy::missing_inline_in_public_items \
@@ -47,4 +48,5 @@ jobs:
           -A clippy::indexing_slicing \
           -A clippy::blanket_clippy_restriction_lints \
           -A clippy::missing_docs_in_private_items \
-          -A clippy::std-instead-of-alloc || true
+          -A clippy::std-instead-of-alloc \
+          -A clippy::multiple-crate-versions || true
