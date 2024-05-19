@@ -10,6 +10,7 @@
 
 use crate::config::{Config, ServerModeration};
 use anyhow::Result;
+use log::error;
 use sqlx::{pool::Pool, postgres::PgPoolOptions, Postgres};
 use std::fs::read_to_string;
 
@@ -41,15 +42,16 @@ impl Database {
             .replace("$3", "'0.0.1'")
             .replace("$4", "'/'");
         for line in query.lines() {
-            let mut chars = line.chars();
-            let char = chars.nth(0).unwrap_or_default();
-            if char == '/' || char == '*' || char == '\n' {
+            if line
+                .chars()
+                .next()
+                .is_some_and(|ch| ['/', '*', '\n'].contains(&ch))
+            {
                 continue;
-            } else {
-                let result = sqlx::query(line).execute(&self.inside).await;
-                if result.is_err() {
-                    println!("{}", result.err().unwrap())
-                }
+            }
+            let result = sqlx::query(line).execute(&self.inside).await;
+            if let Err(err) = result {
+                error!("{err}");
             }
         }
 
