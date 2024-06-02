@@ -41,6 +41,7 @@ impl From<String> for ServerModeration {
 }
 
 impl Display for ServerModeration {
+    #[allow(clippy::min_ident_chars)]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {
             Self::None => write!(f, "\"none\""),
