@@ -41,11 +41,11 @@ impl From<String> for ServerModeration {
 }
 
 impl Display for ServerModeration {
-    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {
-            Self::None => write!(fmt, "\"none\""),
-            Self::Normal => write!(fmt, "\"normal\""),
-            Self::Private => write!(fmt, "\"private\""),
+            Self::None => write!(f, "\"none\""),
+            Self::Normal => write!(f, "\"normal\""),
+            Self::Private => write!(f, "\"private\""),
         }
     }
 }
